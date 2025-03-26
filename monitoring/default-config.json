@@ -1,0 +1,35 @@
+{
+    "monitoring": {
+        "enabled": true,
+        "services": {
+            "prometheus": true,
+            "grafana": true,
+            "skywalking": false,
+            "loki": true,
+            "kafka": false,
+            "elk": false
+        },
+        "retention": {
+            "prometheus": "15d",
+            "loki": "7d",
+            "elasticsearch": "30d"
+        },
+        "resources": {
+            "dev": {
+                "prometheus_memory": "512M",
+                "grafana_memory": "256M",
+                "elasticsearch_memory": "1G"
+            },
+            "prod": {
+                "prometheus_memory": "2G",
+                "grafana_memory": "1G",
+                "elasticsearch_memory": "4G"
+            }
+        },
+        "alerts": {
+            "enabled": false,
+            "email": "",
+            "webhook": ""
+        }
+    }
+} 

@@ -1,0 +1,53 @@
+{
+    "name": "event-handler",
+    "description": "管理组件事件和用户交互",
+    "version": "1.0.0",
+    "capabilities": [
+        "处理UI组件事件",
+        "定义事件委托逻辑",
+        "支持自定义事件",
+        "管理事件传播"
+    ],
+    "dependencies": [
+        "state-manager"
+    ],
+    "apis": [
+        {
+            "name": "addEventListener",
+            "description": "为组件添加事件监听器",
+            "params": [
+                "componentId",
+                "eventType",
+                "handler",
+                "options"
+            ]
+        },
+        {
+            "name": "removeEventListener",
+            "description": "移除组件事件监听器",
+            "params": [
+                "componentId",
+                "eventType",
+                "handler"
+            ]
+        },
+        {
+            "name": "dispatchEvent",
+            "description": "触发组件事件",
+            "params": [
+                "componentId",
+                "eventType",
+                "eventData"
+            ]
+        },
+        {
+            "name": "registerEventAction",
+            "description": "注册事件触发的动作",
+            "params": [
+                "eventType",
+                "actionType",
+                "actionHandler"
+            ]
+        }
+    ]
+}

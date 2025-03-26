@@ -1,0 +1,37 @@
+{
+    "name": "template-generator",
+    "description": "后端生成UI配置的服务",
+    "version": "1.0.0",
+    "capabilities": [
+        "基于服务器数据生成UI模板",
+        "处理条件渲染逻辑",
+        "支持模板版本控制",
+        "根据用户上下文个性化模板"
+    ],
+    "dependencies": [],
+    "apis": [
+        {
+            "name": "generateTemplate",
+            "description": "根据屏幕ID和上下文生成UI模板",
+            "params": [
+                "screenId",
+                "context"
+            ]
+        },
+        {
+            "name": "getTemplateSchema",
+            "description": "获取指定模板的JSON模式",
+            "params": [
+                "templateId"
+            ]
+        },
+        {
+            "name": "validateTemplate",
+            "description": "验证模板是否符合模式规范",
+            "params": [
+                "template",
+                "schemaId"
+            ]
+        }
+    ]
+}

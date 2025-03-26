@@ -1,0 +1,46 @@
+{
+    "name": "version-controller",
+    "description": "管理UI配置的版本兼容性",
+    "version": "1.0.0",
+    "capabilities": [
+        "处理UI配置版本兼容性",
+        "管理组件升级迁移",
+        "提供向后兼容支持",
+        "记录版本变更历史"
+    ],
+    "dependencies": [],
+    "apis": [
+        {
+            "name": "checkCompatibility",
+            "description": "检查UI配置兼容性",
+            "params": [
+                "templateVersion",
+                "clientVersion"
+            ]
+        },
+        {
+            "name": "migrateTemplate",
+            "description": "将模板迁移到指定版本",
+            "params": [
+                "template",
+                "targetVersion"
+            ]
+        },
+        {
+            "name": "registerMigration",
+            "description": "注册版本迁移规则",
+            "params": [
+                "fromVersion",
+                "toVersion",
+                "migrationFn"
+            ]
+        },
+        {
+            "name": "getVersionHistory",
+            "description": "获取版本变更历史",
+            "params": [
+                "templateId"
+            ]
+        }
+    ]
+}

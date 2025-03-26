@@ -1,0 +1,52 @@
+{
+    "name": "theme-manager",
+    "description": "处理UI样式和主题切换",
+    "version": "1.0.0",
+    "capabilities": [
+        "管理UI主题",
+        "处理动态样式切换",
+        "支持自定义主题",
+        "提供响应式主题适配"
+    ],
+    "dependencies": [],
+    "apis": [
+        {
+            "name": "setTheme",
+            "description": "设置当前主题",
+            "params": [
+                "themeName",
+                "options"
+            ]
+        },
+        {
+            "name": "getTheme",
+            "description": "获取当前主题",
+            "params": []
+        },
+        {
+            "name": "registerTheme",
+            "description": "注册自定义主题",
+            "params": [
+                "themeName",
+                "themeConfig"
+            ]
+        },
+        {
+            "name": "getStyleForComponent",
+            "description": "获取组件在当前主题下的样式",
+            "params": [
+                "componentType",
+                "variant",
+                "state"
+            ]
+        },
+        {
+            "name": "applyDynamicStyles",
+            "description": "应用动态样式",
+            "params": [
+                "componentId",
+                "styleOverrides"
+            ]
+        }
+    ]
+}

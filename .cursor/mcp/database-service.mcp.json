@@ -1,0 +1,95 @@
+{
+    "name": "database-service",
+    "description": "访问PostgreSQL数据库的服务",
+    "version": "1.0.0",
+    "capabilities": [
+        "连接PostgreSQL数据库",
+        "执行SQL查询和事务",
+        "管理模板和组件数据",
+        "提供数据缓存与优化"
+    ],
+    "dependencies": [],
+    "configuration": {
+        "connection": {
+            "host": "localhost",
+            "port": 5432,
+            "database": "sdui",
+            "user": "huajin",
+            "password": "",
+            "poolSize": 10,
+            "idleTimeoutMillis": 30000,
+            "schema": "sdui_schema"
+        },
+        "options": {
+            "enableLogging": true,
+            "logLevel": "info",
+            "enableQueryCache": true,
+            "queryTimeout": 5000
+        },
+        "tables": {
+            "components": "sdui_schema.sdui_demo",
+            "templates": "sdui_schema.sdui_templates",
+            "screens": "sdui_schema.sdui_screens",
+            "users": "sdui_schema.sdui_users"
+        }
+    },
+    "apis": [
+        {
+            "name": "getConnection",
+            "description": "获取数据库连接",
+            "params": [
+                "options"
+            ]
+        },
+        {
+            "name": "executeQuery",
+            "description": "执行SQL查询",
+            "params": [
+                "query",
+                "params",
+                "options"
+            ]
+        },
+        {
+            "name": "executeTransaction",
+            "description": "执行事务",
+            "params": [
+                "queries",
+                "options"
+            ]
+        },
+        {
+            "name": "getTemplateData",
+            "description": "获取UI模板数据",
+            "params": [
+                "templateId",
+                "options"
+            ]
+        },
+        {
+            "name": "getComponentData",
+            "description": "获取组件数据",
+            "params": [
+                "componentId",
+                "options"
+            ]
+        },
+        {
+            "name": "saveTemplate",
+            "description": "保存UI模板",
+            "params": [
+                "template",
+                "options"
+            ]
+        },
+        {
+            "name": "updateTemplate",
+            "description": "更新UI模板",
+            "params": [
+                "templateId",
+                "updates",
+                "options"
+            ]
+        }
+    ]
+}

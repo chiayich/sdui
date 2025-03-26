@@ -1,0 +1,18 @@
+# 主Docker Compose文件，引用各个服务的子配置文件
+# 可以使用 docker compose -f monitoring/docker-compose.yml up -d 启动所有监控服务
+# 或者选择性启动某些服务，如 docker compose -f monitoring/docker-compose.yml up -d prometheus grafana
+
+name: sdui-monitoring
+
+include:
+  - path: ./prometheus/docker-compose.prometheus.yml
+  - path: ./skywalking/docker-compose.skywalking.yml
+  - path: ./loki/docker-compose.loki.yml
+  - path: ./kafka/docker-compose.kafka.yml
+  # ELK通常只在生产环境使用，开发环境可以注释掉
+  # - path: ./elk/docker-compose.elk.yml
+
+networks:
+  sdui-monitoring:
+    # 使用外部网络，由脚本创建
+    external: true 

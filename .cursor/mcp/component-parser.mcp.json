@@ -1,0 +1,32 @@
+{
+    "name": "component-parser",
+    "description": "解析UI JSON配置并映射到前端组件的服务",
+    "version": "1.0.0",
+    "capabilities": [
+        "解析服务端UI配置JSON",
+        "映射组件类型与属性",
+        "处理组件嵌套结构",
+        "验证组件配置有效性"
+    ],
+    "dependencies": [
+        "renderer-engine"
+    ],
+    "apis": [
+        {
+            "name": "parseComponent",
+            "description": "解析单个组件配置",
+            "params": [
+                "componentConfig",
+                "context"
+            ]
+        },
+        {
+            "name": "parseComponentTree",
+            "description": "解析整个组件树",
+            "params": [
+                "treeConfig",
+                "context"
+            ]
+        }
+    ]
+}

@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # 后端API服务
+  sdui-api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: sdui-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_HOST=host.docker.internal
+      - DB_PORT=5432
+      - DB_NAME=sdui
+      - DB_USER=huajin
+      - DB_PASSWORD=
+      - DB_SCHEMA=sdui_schema
+      - DEBUG=True
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - redis
+
+  # 前端服务
+  sdui-web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: sdui-web
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    depends_on:
+      - sdui-api
+
+  # Redis缓存服务
+  redis:
+    image: redis:alpine
+    container_name: sdui-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+volumes:
+  redis-data: 

@@ -1,0 +1,45 @@
+{
+    "name": "cache-manager",
+    "description": "处理UI配置的客户端缓存策略",
+    "version": "1.0.0",
+    "capabilities": [
+        "管理UI配置本地缓存",
+        "实现增量更新机制",
+        "控制缓存过期策略",
+        "处理离线场景"
+    ],
+    "dependencies": [],
+    "apis": [
+        {
+            "name": "cacheTemplate",
+            "description": "缓存UI模板",
+            "params": [
+                "templateId",
+                "template",
+                "options"
+            ]
+        },
+        {
+            "name": "getFromCache",
+            "description": "从缓存获取模板",
+            "params": [
+                "templateId"
+            ]
+        },
+        {
+            "name": "applyDiff",
+            "description": "应用增量更新到缓存模板",
+            "params": [
+                "templateId",
+                "diff"
+            ]
+        },
+        {
+            "name": "clearCache",
+            "description": "清除缓存",
+            "params": [
+                "pattern"
+            ]
+        }
+    ]
+}

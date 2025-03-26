@@ -1,0 +1,50 @@
+services:
+  loki:
+    image: grafana/loki:2.8.0
+    container_name: sdui-loki
+    restart: unless-stopped
+    ports:
+      - "9094:3100"
+    volumes:
+      - loki-data:/loki
+    networks:
+      - sdui-monitoring
+
+  promtail:
+    image: grafana/promtail:2.8.0
+    container_name: sdui-promtail
+    restart: unless-stopped
+    volumes:
+      - /var/log:/var/log
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    networks:
+      - sdui-monitoring
+    depends_on:
+      - loki
+
+  # Grafana is defined in Prometheus docker-compose file
+  # This service can be used if you want to run Loki independently
+  # grafana:
+  #   image: grafana/grafana:latest
+  #   container_name: sdui-grafana-loki
+  #   restart: unless-stopped
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - GF_SECURITY_ADMIN_USER=admin
+  #     - GF_SECURITY_ADMIN_PASSWORD=admin
+  #   volumes:
+  #     - grafana-data:/var/lib/grafana
+  #     - ./dashboards:/etc/grafana/dashboards
+  #     - ./config/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/loki-datasource.yaml
+  #   networks:
+  #     - sdui-monitoring
+  #   depends_on:
+  #     - loki
+
+networks:
+  sdui-monitoring:
+    external: true
+
+volumes:
+  loki-data: 

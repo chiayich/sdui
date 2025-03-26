@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  # 主开发容器
+  app:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - ..:/workspace:cached
+      # Docker 配置文件挂载，允许容器内配置Docker镜像加速
+      - ~/.docker:/home/vscode/.docker:cached
+      # 添加Docker socket挂载
+      - /var/run/docker.sock:/var/run/docker.sock:cached
+    command: sleep infinity
+    # 使用host网络模式代替service:db
+    # network_mode: service:db
+    networks:
+      - default
+    depends_on:
+      - db
+      - redis
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/sdui
+      - REDIS_URL=redis://redis:6379/0
+      - NODE_ENV=development
+      - PYTHONPATH=/workspace/backend
+      # 使用国内镜像源环境变量
+      - PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
+      - NPM_CONFIG_REGISTRY=https://registry.npmmirror.com
+    ports:
+      - "5173:5173" # 前端开发服务器
+      - "8000:8000" # 后端API服务器
+
+  # PostgreSQL服务
+  db:
+    image: postgres:14
+    restart: unless-stopped
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: sdui
+    ports:
+      - "5432:5432"
+
+  # Redis缓存服务
+  redis:
+    image: redis:alpine
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+
+networks:
+  default:
+
+
+volumes:
+  postgres-data:
+  redis-data:

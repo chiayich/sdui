@@ -1,0 +1,291 @@
+# SDUI 监控和追踪架构
+
+本文档介绍了 SDUI 框架的监控、追踪和日志架构，包括各组件的作用、配置和使用方法。
+
+## 架构概览
+
+SDUI 框架采用了现代化的可观测性架构，包括以下核心组件：
+
+```
+            +-------------------+
+            |                   |
+            |      Grafana      |
+            |    (可视化平台)     |
+            |                   |
+            +--------+----------+
+                     |
+        +------------+------------+
+        |                         |
++-------v------+        +---------v-----+
+|              |        |               |
+|  Prometheus  |        |     Loki      |
+| (指标监控系统) |        | (日志聚合系统) |
+|              |        |               |
++-------+------+        +---------+-----+
+        |                         |
+        +------------+------------+
+                     |
+            +--------v----------+
+            |                   |
+            |    SkyWalking     |
+            |  (分布式追踪系统)   |
+            |                   |
+            +--------+----------+
+                     |
+            +--------v----------+
+            |                   |
+            |      Kafka        |
+            |    (消息队列)      |
+            |                   |
+            +--------+----------+
+                     |
+            +--------v----------+
+            |                   |
+            |    ELK Stack      |
+            |  (生产日志系统)    |
+            |                   |
+            +-------------------+
+```
+
+### 关键组件
+
+1. **Prometheus + Grafana**: 用于收集和可视化指标数据，监控系统性能和健康状态
+2. **SkyWalking**: 分布式追踪系统，提供服务间调用追踪、性能指标收集和服务拓扑图
+3. **Loki + Grafana**: 开发和测试环境中的日志聚合和查询系统
+4. **Kafka**: 消息队列，用于日志数据的缓冲和转发
+5. **ELK Stack**: 生产环境中的高级日志处理和分析平台
+
+## 组件详情
+
+### Prometheus + Grafana
+
+- **用途**: 收集、存储和可视化指标数据
+- **配置位置**: 
+  - `/monitoring/prometheus/config/prometheus.yml` - Prometheus 配置
+  - `/monitoring/prometheus/config/grafana-datasources.yaml` - Grafana 数据源配置
+  - `/monitoring/prometheus/dashboards/` - Grafana 仪表盘
+- **服务端点**:
+  - Prometheus: `http://localhost:9090`
+  - Grafana: `http://localhost:3000`
+
+### SkyWalking
+
+- **用途**: 分布式追踪和应用性能监控
+- **配置位置**: 
+  - `/monitoring/skywalking/` - SkyWalking 配置和 Agent
+- **服务端点**:
+  - OAP (Observability Analysis Platform): `http://localhost:11800`
+  - UI: `http://localhost:8080`
+- **Agent 信息**:
+  - Java Agent 位置: `/monitoring/skywalking/agent/`
+  - Python Agent: 通过 pip 安装 `apache-skywalking`
+
+### Loki + Grafana (开发/测试环境日志)
+
+- **用途**: 轻量级日志收集和查询系统
+- **配置位置**:
+  - `/monitoring/loki/config/loki-config.yaml` - Loki 配置
+  - `/monitoring/loki/config/promtail-config.yaml` - Promtail 配置
+- **服务端点**:
+  - Loki: `http://localhost:3100`
+  - Grafana: `http://localhost:3000`
+
+### Kafka
+
+- **用途**: 日志消息的缓冲和转发
+- **配置位置**:
+  - `/monitoring/kafka/` - Kafka 配置
+- **服务端点**:
+  - Kafka: `localhost:9092`
+  - Kafka UI: `http://localhost:8080`
+
+### ELK Stack (生产环境日志)
+
+- **用途**: 高级日志收集、处理和分析
+- **配置位置**:
+  - `/monitoring/elk/config/logstash.conf` - Logstash 管道配置
+  - `/monitoring/elk/config/logstash.yml` - Logstash 主配置
+  - `/monitoring/elk/config/filebeat.yml` - Filebeat 配置
+- **服务端点**:
+  - Elasticsearch: `http://localhost:9200`
+  - Kibana: `http://localhost:5601`
+  - Logstash: `localhost:5044` (Beats 输入), `localhost:5000` (TCP/UDP 输入)
+
+## 应用集成指南
+
+### 后端应用 (FastAPI)
+
+#### 1. 集成 SkyWalking
+
+```python
+# 安装依赖
+# pip install apache-skywalking
+
+# 示例代码
+from skywalking import agent, config
+
+config.init(
+    agent_name='sdui-backend',
+    agent_instance_name='backend-instance',
+    collector_address='localhost:11800',
+    logging_level='INFO'
+)
+agent.start()
+
+# FastAPI 应用
+app = FastAPI()
+```
+
+#### 2. 集成 Prometheus 指标
+
+```python
+# 安装依赖
+# pip install prometheus-fastapi-instrumentator
+
+# 示例代码
+from prometheus_fastapi_instrumentator import Instrumentator
+
+app = FastAPI()
+
+# 设置 Prometheus 指标
+Instrumentator().instrument(app).expose(app)
+```
+
+#### 3. 日志集成
+
+```python
+# 使用 Python 标准日志库输出到文件，Promtail 会收集这些日志
+import logging
+import json
+
+logger = logging.getLogger("sdui-backend")
+handler = logging.FileHandler("/app/logs/backend.log")
+handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+logger.addHandler(handler)
+
+# 或者直接发送到 Logstash
+def log_to_logstash(level, message, extra=None):
+    log_data = {
+        "level": level,
+        "message": message,
+        "application": "backend",
+        "timestamp": datetime.now().isoformat(),
+        **(extra or {})
+    }
+    # 使用 TCP 发送到 Logstash
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.connect(('logstash', 5000))
+        s.sendall((json.dumps(log_data) + '\n').encode())
+```
+
+### 前端应用 (Vue)
+
+#### 1. 集成 SkyWalking
+
+```javascript
+// 安装依赖
+// npm install skywalking-client-js
+
+// 示例代码
+import ClientMonitor from 'skywalking-client-js';
+
+ClientMonitor.register({
+  service: 'sdui-frontend',
+  pagePath: location.href,
+  serviceVersion: 'v1.0.0',
+  collector: {
+    url: 'http://localhost:8080/browser/perfData', 
+    authHeader: {
+      Authorization: ''
+    },
+  }
+});
+```
+
+#### 2. 集成日志
+
+```javascript
+// 日志服务
+export default {
+  info(message, data = {}) {
+    const logData = {
+      level: 'INFO',
+      message,
+      data,
+      application: 'frontend',
+      timestamp: new Date().toISOString()
+    };
+    this.sendLog(logData);
+  },
+  error(message, error = null, data = {}) {
+    const logData = {
+      level: 'ERROR',
+      message,
+      error: error ? error.toString() : null,
+      stack: error ? error.stack : null,
+      data,
+      application: 'frontend',
+      timestamp: new Date().toISOString()
+    };
+    this.sendLog(logData);
+  },
+  sendLog(logData) {
+    // 在开发环境，发送到控制台
+    console.log(logData);
+    
+    // 发送到后端 API，后端将转发到 Kafka 或 ELK
+    fetch('/api/logs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(logData)
+    }).catch(err => console.error('Failed to send log:', err));
+  }
+};
+```
+
+## 开发流程
+
+1. **启动监控服务**:
+   ```bash
+   cd monitoring
+   docker-compose up -d prometheus grafana skywalking loki
+   ```
+
+2. **访问监控面板**:
+   - Grafana: http://localhost:3000 (用户名/密码: admin/admin)
+   - Prometheus: http://localhost:9090
+   - SkyWalking UI: http://localhost:8080
+   
+3. **查看日志**:
+   - 开发环境: 使用 Grafana 查询 Loki 中的日志
+   - 生产环境: 使用 Kibana 查询 Elasticsearch 中的日志
+
+## 重要说明
+
+1. **本地开发配置**:
+   - 所有服务默认配置为开发环境资源需求
+   - 对于生产环境，需要根据实际负载调整资源配置
+
+2. **安全注意事项**:
+   - 开发环境中禁用了大部分安全配置
+   - 生产环境部署前，必须启用适当的安全措施和身份验证
+
+3. **日志管理**:
+   - 开发/测试环境使用 Loki
+   - 生产环境使用 ELK Stack
+   - 日志保留策略应根据实际需求配置
+
+## 排障指南
+
+1. **Prometheus 指标不可见**:
+   - 检查应用是否正确暴露了指标端点
+   - 验证 Prometheus 配置中的 scrape_configs
+
+2. **SkyWalking 追踪丢失**:
+   - 确保 agent 配置正确并成功连接到 OAP 服务
+   - 检查服务名称和实例名称是否一致
+
+3. **日志未显示**:
+   - 检查日志路径配置
+   - 验证 Loki/Logstash 连接配置
+   - 确认日志格式与解析规则匹配 

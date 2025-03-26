@@ -1,0 +1,51 @@
+{
+    "name": "network-layer",
+    "description": "处理前后端通信和API调用",
+    "version": "1.0.0",
+    "capabilities": [
+        "管理UI配置API请求",
+        "处理组件数据加载",
+        "实现重试和错误处理机制",
+        "支持请求优先级和取消"
+    ],
+    "dependencies": [
+        "cache-manager"
+    ],
+    "apis": [
+        {
+            "name": "fetchUIConfig",
+            "description": "获取UI配置",
+            "params": [
+                "screenId",
+                "context",
+                "options"
+            ]
+        },
+        {
+            "name": "fetchComponentData",
+            "description": "获取组件所需数据",
+            "params": [
+                "dataUrl",
+                "params",
+                "options"
+            ]
+        },
+        {
+            "name": "submitAction",
+            "description": "提交用户操作到服务器",
+            "params": [
+                "actionType",
+                "actionData",
+                "options"
+            ]
+        },
+        {
+            "name": "setupInterceptor",
+            "description": "设置请求/响应拦截器",
+            "params": [
+                "type",
+                "interceptor"
+            ]
+        }
+    ]
+}

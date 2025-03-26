@@ -1,0 +1,60 @@
+repos:
+  # Python检查器
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: debug-statements
+      - id: check-json
+      - id: check-merge-conflict
+
+  # Python代码格式化
+  - repo: https://github.com/psf/black
+    rev: 23.7.0
+    hooks:
+      - id: black
+        language_version: python3
+        types: [python]
+
+  # Python代码静态分析
+  - repo: https://github.com/pycqa/flake8
+    rev: 6.1.0
+    hooks:
+      - id: flake8
+        additional_dependencies: [flake8-docstrings]
+        types: [python]
+        args: ["--max-line-length=100", "--ignore=E203,W503,D100,D104,D105,D107"]
+
+  # 导入排序
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        types: [python]
+        args: ["--profile", "black"]
+
+  # JavaScript/TypeScript格式化
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v3.0.3
+    hooks:
+      - id: prettier
+        types_or: [javascript, typescript, vue]
+        additional_dependencies:
+          - prettier@2.8.8
+          - prettier-plugin-tailwindcss@0.4.1
+
+  # ESLint检查
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v8.49.0
+    hooks:
+      - id: eslint
+        types_or: [javascript, typescript, vue]
+        additional_dependencies:
+          - eslint@8.49.0
+          - eslint-plugin-vue@9.17.0
+          - "@typescript-eslint/eslint-plugin@6.7.4"
+          - "@typescript-eslint/parser@6.7.4"
+        args: [--fix] 

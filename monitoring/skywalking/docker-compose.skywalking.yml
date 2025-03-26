@@ -1,0 +1,66 @@
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.14.0
+    container_name: sdui-skywalking-elasticsearch
+    restart: unless-stopped
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    networks:
+      - sdui-monitoring
+
+  oap:
+    image: apache/skywalking-oap-server:9.0.0
+    container_name: sdui-skywalking-oap
+    restart: unless-stopped
+    depends_on:
+      - elasticsearch
+    environment:
+      - SW_STORAGE=elasticsearch
+      - SW_STORAGE_ES_CLUSTER_NODES=elasticsearch:9200
+      - SW_HEALTH_CHECKER=default
+      - SW_TELEMETRY=prometheus
+    ports:
+      - "11800:11800"
+      - "12800:12800"
+    networks:
+      - sdui-monitoring
+
+  ui:
+    image: apache/skywalking-ui:9.0.0
+    container_name: sdui-skywalking-ui
+    restart: unless-stopped
+    depends_on:
+      - oap
+    environment:
+      - SW_OAP_ADDRESS=oap:12800
+    ports:
+      - "9093:8080"
+    networks:
+      - sdui-monitoring
+
+  agent-container:
+    image: apache/skywalking-java-agent:8.10.0
+    container_name: sdui-skywalking-agent
+    volumes:
+      - ./agent:/agent
+    command: /bin/sh -c "cp -r /skywalking/agent/* /agent/ && tail -f /dev/null"
+    networks:
+      - sdui-monitoring
+
+networks:
+  sdui-monitoring:
+    external: true
+
+volumes:
+  elasticsearch-data: 

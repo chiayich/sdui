@@ -1,0 +1,62 @@
+{
+    "name": "debug-tools",
+    "description": "辅助开发和测试的工具服务",
+    "version": "1.0.0",
+    "capabilities": [
+        "提供UI组件调试工具",
+        "日志记录与分析",
+        "性能监控",
+        "配置可视化"
+    ],
+    "dependencies": [
+        "renderer-engine",
+        "state-manager"
+    ],
+    "apis": [
+        {
+            "name": "inspectComponent",
+            "description": "检查组件状态和属性",
+            "params": [
+                "componentId"
+            ]
+        },
+        {
+            "name": "logEvent",
+            "description": "记录事件日志",
+            "params": [
+                "eventType",
+                "eventData",
+                "level"
+            ]
+        },
+        {
+            "name": "startPerformanceMonitor",
+            "description": "开始性能监控",
+            "params": [
+                "options"
+            ]
+        },
+        {
+            "name": "stopPerformanceMonitor",
+            "description": "停止性能监控",
+            "params": []
+        },
+        {
+            "name": "visualizeUIConfig",
+            "description": "可视化UI配置",
+            "params": [
+                "config",
+                "options"
+            ]
+        },
+        {
+            "name": "simulateEvent",
+            "description": "模拟组件事件",
+            "params": [
+                "componentId",
+                "eventType",
+                "eventData"
+            ]
+        }
+    ]
+}
