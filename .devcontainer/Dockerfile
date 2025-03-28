@@ -81,8 +81,4 @@ RUN git config --global url."https://gitclone.com/github.com/".insteadOf "https:
 # 设置工作目录
 WORKDIR /workspace
 
-# 这里修改COPY路径，直接使用绝对路径
-COPY .devcontainer/init.sh /usr/local/bin/init.sh
-RUN chmod +x /usr/local/bin/init.sh
-
 USER vscode 

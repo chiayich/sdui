@@ -1,0 +1,21 @@
+version: '3.8'
+
+# 这个文件会自动覆盖docker-compose.yml中的相应配置
+# 使用.env文件中定义的环境变量动态设置端口映射
+
+services:
+  # 主开发容器
+  app:
+    ports:
+      - "${FRONTEND_PORT:-5173}:5173" # 前端开发服务器
+      - "${BACKEND_PORT:-8000}:8000" # 后端API服务器
+
+  # PostgreSQL服务
+  db:
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+
+  # Redis缓存服务
+  redis:
+    ports:
+      - "${REDIS_PORT:-6379}:6379" 

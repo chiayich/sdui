@@ -1,8 +1,9 @@
-version: '3.8'
-
 services:
   # 主开发容器
   app:
+    # 添加环境变量文件
+    env_file:
+      - .env
     build:
       context: ..
       dockerfile: .devcontainer/Dockerfile
@@ -29,35 +30,41 @@ services:
       - PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
       - NPM_CONFIG_REGISTRY=https://registry.npmmirror.com
     ports:
-      - "5173:5173" # 前端开发服务器
-      - "8000:8000" # 后端API服务器
+      - "${FRONTEND_PORT:-5173}:5173" # 前端开发服务器
+      - "${BACKEND_PORT:-8000}:8000" # 后端API服务器
 
   # PostgreSQL服务
   db:
+    # 添加环境变量文件
+    env_file:
+      - .env
     image: postgres:14
     restart: unless-stopped
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      - ./postgres-init:/docker-entrypoint-initdb.d
+      # 使用相对路径进行挂载，避免绝对路径导致的挂载权限问题
+      - ../postgres-init:/docker-entrypoint-initdb.d
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_USER: postgres
       POSTGRES_DB: sdui
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
 
   # Redis缓存服务
   redis:
+    # 添加环境变量文件
+    env_file:
+      - .env
     image: redis:alpine
     restart: unless-stopped
     volumes:
       - redis-data:/data
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6379}:6379"
 
 networks:
   default:
-
 
 volumes:
   postgres-data:

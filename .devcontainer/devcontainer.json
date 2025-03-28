@@ -1,108 +1,130 @@
 {
-    "name": "SDUI Framework Development",
-    "dockerComposeFile": "docker-compose.yml",
-    "service": "app",
-    "workspaceFolder": "/workspace",
-    "shutdownAction": "stopCompose",
-    // 注释掉Features以避免网络超时问题，改为在Dockerfile中直接安装所需工具
-    // "features": {
-    //     "ghcr.io/devcontainers/features/python:1": {
-    //         "version": "3.11"
-    //     },
-    //     "ghcr.io/devcontainers/features/node:1": {
-    //         "version": "18"
-    //     },
-    //     "ghcr.io/devcontainers/features/docker-in-docker:2": {},
-    //     "ghcr.io/devcontainers/features/git:1": {},
-    //     "ghcr.io/devcontainers-contrib/features/typescript:2": {},
-    //     "ghcr.io/devcontainers-contrib/features/vue-cli:2": {}
-    // },
-    "customizations": {
-        "vscode": {
-            "extensions": [
-                "ms-python.python",
-                "ms-python.vscode-pylance",
-                "ms-azuretools.vscode-docker",
-                "dbaeumer.vscode-eslint",
-                "esbenp.prettier-vscode",
-                "Vue.volar",
-                "Vue.vscode-typescript-vue-plugin",
-                "redhat.vscode-yaml",
-                "ms-python.black-formatter",
-                "ms-vsliveshare.vsliveshare",
-                "GitHub.copilot",
-                "njpwerner.autodocstring",
-                "yzhang.markdown-all-in-one",
-                "eamodio.gitlens"
-            ],
-            "settings": {
-                "python.defaultInterpreterPath": "/usr/local/bin/python",
-                "python.linting.enabled": true,
-                "python.linting.pylintEnabled": true,
-                "python.formatting.provider": "black",
-                "editor.formatOnSave": true,
-                "editor.codeActionsOnSave": {
-                    "source.fixAll.eslint": true
-                },
-                "eslint.validate": [
-                    "javascript",
-                    "typescript",
-                    "vue"
-                ],
-                "[python]": {
-                    "editor.defaultFormatter": "ms-python.black-formatter"
-                },
-                "[javascript][typescript][vue]": {
-                    "editor.defaultFormatter": "esbenp.prettier-vscode"
-                },
-                "[markdown]": {
-                    "editor.defaultFormatter": "yzhang.markdown-all-in-one"
-                }
-            }
+  "name": "SDUI Framework Development",
+  "dockerComposeFile": ["docker-compose.yml", "docker-compose.override.yml"],
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "shutdownAction": "stopCompose",
+  // 注意: initializeCommand是在宿主机执行的，而不是容器内
+  // 它用于在开始创建容器之前检查宿主机的端口占用情况
+  // "features": {
+  //     "ghcr.io/devcontainers/features/python:1": {
+  //         "version": "3.11"
+  //     },
+  //     "ghcr.io/devcontainers/features/node:1": {
+  //         "version": "18"
+  //     },
+  //     "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+  //     "ghcr.io/devcontainers/features/git:1": {},
+  //     "ghcr.io/devcontainers-contrib/features/typescript:2": {},
+  //     "ghcr.io/devcontainers-contrib/features/vue-cli:2": {}
+  // },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-azuretools.vscode-docker",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "Vue.volar",
+        "Vue.vscode-typescript-vue-plugin",
+        "redhat.vscode-yaml",
+        "ms-python.black-formatter",
+        "ms-vsliveshare.vsliveshare",
+        "GitHub.copilot",
+        "njpwerner.autodocstring",
+        "yzhang.markdown-all-in-one",
+        "eamodio.gitlens"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.linting.enabled": true,
+        "python.linting.pylintEnabled": true,
+        "python.formatting.provider": "black",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": true
+        },
+        "eslint.validate": ["javascript", "typescript", "vue"],
+        "[python]": {
+          "editor.defaultFormatter": "ms-python.black-formatter"
+        },
+        "[javascript][typescript][vue]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[markdown]": {
+          "editor.defaultFormatter": "yzhang.markdown-all-in-one"
         }
+      }
+    }
+  },
+  // 以下端口可通过环境变量覆盖，参见docker-compose.yml:
+  // FRONTEND_PORT, BACKEND_PORT, POSTGRES_PORT, REDIS_PORT
+  "forwardPorts": [
+    5173, // 前端开发服务器 (可通过FRONTEND_PORT环境变量覆盖)
+    8000, // 后端API服务器 (可通过BACKEND_PORT环境变量覆盖)
+    5432, // PostgreSQL (可通过POSTGRES_PORT环境变量覆盖)
+    6379, // Redis (可通过REDIS_PORT环境变量覆盖)
+    9090, // Prometheus
+    9091, // Grafana
+    9093, // SkyWalking UI
+    9094, // Loki
+    9092, // Kafka
+    9095, // Kafka UI
+    9229, // Node.js Debug
+    5678  // Python Debug
+  ],
+  "portsAttributes": {
+    "5173": {
+      "label": "Frontend Dev Server",
+      "onAutoForward": "notify"
     },
-    "forwardPorts": [
-        3000,
-        8000,
-        6379,
-        5432,
-        8080,
-        9090,
-        9091,
-        9093,
-        9094
-    ],
-    "portsAttributes": {
-        "3000": {
-            "label": "Frontend",
-            "onAutoForward": "notify"
-        },
-        "8000": {
-            "label": "Backend API",
-            "onAutoForward": "notify"
-        },
-        "8080": {
-            "label": "Frontend Alt",
-            "onAutoForward": "notify"
-        },
-        "9090": {
-            "label": "Prometheus",
-            "onAutoForward": "notify"
-        },
-        "9091": {
-            "label": "Grafana",
-            "onAutoForward": "notify"
-        },
-        "9093": {
-            "label": "SkyWalking UI",
-            "onAutoForward": "notify"
-        },
-        "9094": {
-            "label": "Loki",
-            "onAutoForward": "notify"
-        }
+    "8000": {
+      "label": "Backend API",
+      "onAutoForward": "notify"
     },
-    "remoteUser": "vscode",
-    "postCreateCommand": "bash /usr/local/bin/init.sh",
-    "postStartCommand": "bash /workspace/.devcontainer/start_services.sh"
+    "5432": {
+      "label": "PostgreSQL",
+      "onAutoForward": "notify"
+    },
+    "6379": {
+      "label": "Redis",
+      "onAutoForward": "notify"
+    },
+    "9090": {
+      "label": "Prometheus",
+      "onAutoForward": "notify"
+    },
+    "9091": {
+      "label": "Grafana",
+      "onAutoForward": "notify"
+    },
+    "9093": {
+      "label": "SkyWalking UI",
+      "onAutoForward": "notify"
+    },
+    "9094": {
+      "label": "Loki",
+      "onAutoForward": "notify"
+    },
+    "9092": {
+      "label": "Kafka",
+      "onAutoForward": "notify"
+    },
+    "9095": {
+      "label": "Kafka UI",
+      "onAutoForward": "notify"
+    },
+    "9229": {
+      "label": "Node.js Debug",
+      "onAutoForward": "notify"
+    },
+    "5678": {
+      "label": "Python Debug",
+      "onAutoForward": "notify"
+    }
+  },
+  "remoteUser": "vscode",
+  "onCreateCommand": "bash -c 'echo \"🔧 配置Docker权限...\" && if [ -S /var/run/docker.sock ]; then DOCKER_GID=$(stat -c \"%g\" /var/run/docker.sock); if ! getent group $DOCKER_GID > /dev/null; then sudo groupadd -g $DOCKER_GID docker_host || true; fi; GROUP_NAME=$(getent group $DOCKER_GID | cut -d: -f1); sudo usermod -aG $DOCKER_GID $(whoami); echo \"✅ Docker权限配置成功！\"; else echo \"❌ Docker socket不存在\"; fi'",
+  "postStartCommand": "bash /workspace/.devcontainer/start-dev.sh"
 }
