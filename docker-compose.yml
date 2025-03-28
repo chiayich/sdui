@@ -1,44 +1,47 @@
-version: '3.8'
-
 services:
-  # 后端API服务
-  sdui-api:
+  # 主后端应用服务
+  backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: sdui-api
     restart: unless-stopped
-    ports:
-      - "8000:8000"
-    environment:
-      - DB_HOST=host.docker.internal
-      - DB_PORT=5432
-      - DB_NAME=sdui
-      - DB_USER=huajin
-      - DB_PASSWORD=
-      - DB_SCHEMA=sdui_schema
-      - DEBUG=True
-    volumes:
-      - ./backend:/app
     depends_on:
+      - db
       - redis
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=sdui
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
 
-  # 前端服务
-  sdui-web:
+  # 前端应用服务
+  frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: sdui-web
     restart: unless-stopped
     ports:
-      - "5173:5173"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
+      - "${FRONTEND_PORT:-5173}:5173"
+
+  # PostgreSQL数据库服务
+  db:
+    image: postgres:14-alpine
+    container_name: sdui-db
+    restart: unless-stopped
     environment:
-      - VITE_API_URL=http://localhost:8000
-    depends_on:
-      - sdui-api
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=sdui
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - /tmp/postgres-init:/docker-entrypoint-initdb.d
 
   # Redis缓存服务
   redis:
@@ -46,9 +49,11 @@ services:
     container_name: sdui-redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6379}:6379"
     volumes:
       - redis-data:/data
 
 volumes:
-  redis-data: 
+  postgres-data:
+  redis-data:
+  postgres-init-data:

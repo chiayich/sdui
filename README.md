@@ -47,15 +47,24 @@ git clone https://github.com/yourusername/sdui-framework.git
 cd sdui-framework
 ```
 
-2. 启动服务
+2. 自定义端口配置（可选）
+```bash
+# 复制示例环境配置文件
+cp .devcontainer/.env.example .devcontainer/.env
+
+# 编辑 .env 文件，根据需要修改端口号
+nano .devcontainer/.env
+```
+
+3. 启动服务
 ```bash
 docker-compose up -d
 ```
 
-3. 访问应用
-- 前端: http://localhost:5173
-- API: http://localhost:8000
-- API文档: http://localhost:8000/docs
+4. 访问应用
+- 前端: http://localhost:5173 (或您在.env中配置的FRONTEND_PORT)
+- API: http://localhost:8000 (或您在.env中配置的BACKEND_PORT)
+- API文档: http://localhost:8000/docs (或您在.env中配置的BACKEND_PORT)
 
 更多详情请参阅 [Docker设置指南](docs/docker-setup.md)
 
@@ -112,6 +121,34 @@ npm run dev
 - [开发容器设置指南](docs/devcontainer-setup.md)
 - [Docker设置指南](docs/docker-setup.md)
 - [数据库Schema设置](docs/2023-05-27-sdui-database-schema-setup.md)
+
+## 端口配置
+
+为了避免端口冲突，本项目支持通过环境变量自定义服务端口：
+
+| 服务          | 默认端口 | 环境变量           |
+| ------------- | -------- | ------------------ |
+| 前端开发服务器 | 5173     | FRONTEND_PORT      |
+| 后端API服务器  | 8000     | BACKEND_PORT       |
+| PostgreSQL    | 5432     | POSTGRES_PORT      |
+| Redis         | 6379     | REDIS_PORT         |
+| Prometheus    | 9090     | PROMETHEUS_PORT    |
+| Grafana       | 9091     | GRAFANA_PORT       |
+| SkyWalking UI | 9093     | SKYWALKING_PORT    |
+| Loki          | 9094     | LOKI_PORT          |
+
+### 自动端口配置
+
+项目提供了一个自动检查宿主机端口占用情况并生成配置的脚本：
+
+```bash
+# 运行端口检查脚本
+./check_ports.sh
+```
+
+此脚本会检查默认端口是否被占用，并自动生成`.devcontainer/.env`文件，为被占用的端口分配替代端口。运行脚本后，重新构建开发容器即可应用新的端口配置。
+
+您也可以通过复制 `.devcontainer/.env.example` 为 `.devcontainer/.env` 并手动修改其中的值来自定义端口。
 
 ## 监控系统
 

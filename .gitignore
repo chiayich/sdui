@@ -58,3 +58,7 @@ ENV/
 /dist/
 /build/
 /out/ 
+
+
+# local history
+.lh
