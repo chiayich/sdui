@@ -9,7 +9,7 @@
 
 ## 数据库目录结构
 
-```
+```bash
 postgres-init/
 ├── schemas/                # 数据库模式定义（DDL）
 │   ├── 01_sdui_tables.sql  # 基础表结构定义
@@ -64,7 +64,7 @@ SDUI框架的数据库设计基于以下核心表：
 
 ## 数据库关系模型
 
-```
+```bash
 ui_templates (1) --- (*) ui_components
       |                       |
       |                       |  
@@ -110,4 +110,4 @@ ui_template_variants (1) --- (*) ui_variant_components
 - 密码: postgres
 - 端口: 5432
 
-这些参数可以通过环境变量修改（参见docker-compose.yml）。 
+这些参数可以通过环境变量修改（参见docker-compose.yml）。
