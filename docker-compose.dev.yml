@@ -10,7 +10,7 @@ services:
       - redis
     environment:
       - DB_HOST=db
-      - DB_PORT=5432
+      - DB_PORT=5433
       - DB_USER=postgres
       - DB_PASSWORD=postgres
       - DB_NAME=sdui
@@ -62,10 +62,10 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=sdui
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "${POSTGRES_PORT:-5433}:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      - ./postgres-init:/docker-entrypoint-initdb.d
+      - ./postgres-init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s

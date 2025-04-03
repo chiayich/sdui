@@ -1,39 +1,42 @@
 <template>
   <div class="sdui-view">
     <div v-if="uiStore.isLoading" class="loading">
-      <p>Loading UI configuration...</p>
+      <p>加载UI配置中...</p>
     </div>
     
     <div v-else-if="uiStore.errorMessage" class="error">
-      <h2>Error Loading UI</h2>
+      <h2>加载UI出错</h2>
       <p>{{ uiStore.errorMessage }}</p>
-      <button @click="handleRetry">Retry</button>
+      <button @click="handleRetry">重试</button>
     </div>
     
     <div v-else-if="uiConfig" class="renderer-container">
-      <h1>{{ uiConfig.screen?.title || 'SDUI Screen' }}</h1>
-      
-      <div class="debug-info">
-        <p><strong>Screen ID:</strong> {{ screenId }}</p>
-        <p><strong>UI配置数据类型:</strong> {{ typeof uiConfig }}</p>
+      <div class="screen-header">
+        <h1>{{ uiConfig.screen?.title || 'SDUI 屏幕' }}</h1>
       </div>
       
-      <!-- 这里将来会使用动态组件渲染 -->
-      <div class="component-placeholder">
-        <pre>{{ JSON.stringify(uiConfig, null, 2) }}</pre>
+      <div class="debug-info" v-if="showDebug">
+        <p><strong>屏幕ID:</strong> {{ screenId }}</p>
+        <p><strong>配置版本:</strong> {{ uiConfig.version || '未指定' }}</p>
+        <button @click="toggleDebug">{{ showDebug ? '隐藏' : '显示' }}JSON</button>
+        <pre v-if="showJson">{{ JSON.stringify(uiConfig, null, 2) }}</pre>
       </div>
+      
+      <!-- 使用SDUI渲染器组件 -->
+      <SDUIRenderer :config="uiConfig" />
     </div>
     
     <div v-else class="error">
-      <p>No UI configuration available.</p>
+      <p>没有可用的UI配置。</p>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useUIStore } from '../stores/uiStore';
+import SDUIRenderer from '../components/SDUIRenderer.vue';
 
 const route = useRoute();
 const uiStore = useUIStore();
@@ -43,6 +46,15 @@ const screenId = computed(() => route.params.screenId as string);
 
 // 获取当前UI配置
 const uiConfig = computed(() => uiStore.currentScreen);
+
+// 调试状态
+const showDebug = ref(false);
+const showJson = ref(false);
+
+// 切换调试信息显示
+const toggleDebug = () => {
+  showJson.value = !showJson.value;
+};
 
 // 加载屏幕配置
 const loadScreen = async (forceRefresh = false) => {
@@ -74,6 +86,8 @@ onMounted(() => {
 <style scoped>
 .sdui-view {
   padding: 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .loading, .error {
@@ -85,16 +99,35 @@ onMounted(() => {
   color: #d32f2f;
 }
 
-.component-placeholder {
-  margin-top: 1rem;
+.screen-header {
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.5rem;
+}
+
+.debug-info {
+  margin: 1rem 0;
+  padding: 1rem;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  border: 1px solid #eee;
+}
+
+.debug-info button {
+  margin: 0.5rem 0;
+  padding: 0.25rem 0.5rem;
+}
+
+.debug-info pre {
+  margin: 0.5rem 0 0;
   padding: 1rem;
   background-color: #f5f5f5;
   border-radius: 4px;
   overflow: auto;
+  text-align: left;
 }
 
-pre {
-  margin: 0;
-  text-align: left;
+.renderer-container {
+  margin-top: 1rem;
 }
 </style> 

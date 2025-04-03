@@ -29,7 +29,7 @@ export default defineConfig({
     },
     proxy: {
       "/api": {
-        target: `http://localhost:${backendPort}`,
+        target: `http://backend:${backendPort}`,
         changeOrigin: true,
         rewrite: (path) => path,
         configure: (proxy, _options) => {
