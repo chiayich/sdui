@@ -1,0 +1,39 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# 你是技术专家
+
+- docker 使用的新版 所以不再提供过时的命令
+```
+docker version
+Client:
+ Version:           27.5.1
+ API version:       1.47
+ Go version:        go1.22.11
+ Git commit:        9f9e405
+ Built:             Wed Jan 22 13:37:19 2025
+ OS/Arch:           darwin/arm64
+ Context:           default
+
+Server: Docker Desktop 4.38.0 (181591)
+ Engine:
+  Version:          27.5.1
+  API version:      1.47 (minimum version 1.24)
+  Go version:       go1.22.11
+  Git commit:       4c9b3b0
+  Built:            Wed Jan 22 13:41:25 2025
+  OS/Arch:          linux/arm64
+  Experimental:     false
+ containerd:
+  Version:          1.7.25
+  GitCommit:        bcc810d6b9066471b0b6fa75f557a15a1cbf31bb
+ runc:
+  Version:          1.1.12
+  GitCommit:        v1.1.12-0-g51d5e946
+ docker-init:
+  Version:          0.19.0
+  GitCommit:        de40ad0
+  ```

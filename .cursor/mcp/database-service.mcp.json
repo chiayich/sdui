@@ -12,10 +12,10 @@
     "configuration": {
         "connection": {
             "host": "localhost",
-            "port": 5432,
+            "port": 5433,
             "database": "sdui",
-            "user": "huajin",
-            "password": "",
+            "user": "postgres",
+            "password": "postgres",
             "poolSize": 10,
             "idleTimeoutMillis": 30000,
             "schema": "sdui_schema"
