@@ -5,6 +5,7 @@
       <nav>
         <router-link to="/">Home</router-link> |
         <router-link to="/sdui/home">SDUI Demo</router-link> |
+        <router-link to="/table">Table</router-link> |
         <router-link to="/logs">Logs</router-link> |
         <router-link to="/about">About</router-link>
       </nav>
@@ -58,6 +59,8 @@ main {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
+  min-height: calc(100vh - 200px);
+  background-color: #f5f5f5;
 }
 
 footer {
@@ -66,4 +69,4 @@ footer {
   text-align: center;
   margin-top: 2rem;
 }
-</style> 
+</style>

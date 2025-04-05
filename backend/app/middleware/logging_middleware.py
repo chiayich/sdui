@@ -19,76 +19,48 @@ class LoggingMiddleware(BaseHTTPMiddleware):
 
         # 记录请求开始时间
         start_time = time.time()
+        
+        # 记录基本请求信息，不尝试读取请求体
+        logger_service.log(
+            level="INFO",
+            message=f"开始处理请求: {request.method} {request.url}",
+            source="api",
+            metadata={"request_id": request_id}
+        )
 
-        # 尝试获取请求体，但不消耗它
-        request_body = None
-        if request.method in ["POST", "PUT", "PATCH"]:
-            try:
-                request_body_bytes = await request.body()
-                # 重新设置请求体，以便后续处理
-                request._body = request_body_bytes
-                # 仅记录小于10KB的请求体
-                if len(request_body_bytes) < 10 * 1024:
-                    request_body = request_body_bytes.decode()
-            except Exception:
-                # 如果解析失败，不记录请求体
-                pass
-
-        # 记录基本请求信息
-        path = request.url.path
-        method = request.method
-
-        # 包装Response对象以捕获状态码和响应体
-        response_body = []
-
-        class ResponseCapture:
-            def __init__(self, response: Response):
-                self.response = response
-                self.status_code = response.status_code
-
-            async def __call__(self, scope, receive, send):
-                async def send_wrapper(message):
-                    if message["type"] == "http.response.body":
-                        response_body.append(message.get("body", b""))
-                    await send(message)
-
-                await self.response(scope, receive, send_wrapper)
-
-        # 调用下一个中间件或路由处理器
         try:
+            # 调用下一个中间件或路由处理器
             response = await call_next(request)
+            
+            # 计算请求处理时间
             duration = (time.time() - start_time) * 1000  # 毫秒
 
-            # 包装响应以捕获响应体
-            wrapped_response = ResponseCapture(response)
-
-            # 记录日志（不包括响应体，响应体通常太大）
+            # 记录日志
             logger_service.log_api_request(
                 request_id=request_id,
-                method=method,
-                path=path,
+                method=request.method,
+                path=str(request.url),
                 status_code=response.status_code,
                 duration_ms=duration,
-                request_data={"body": request_body} if request_body else None,
+                request_data=None  # 不记录请求体，避免性能问题
             )
 
-            return wrapped_response
+            return response
 
         except Exception as e:
             # 记录异常
             duration = (time.time() - start_time) * 1000
             logger_service.log(
                 level="ERROR",
-                message=f"API请求异常: {method} {path} - {str(e)}",
+                message=f"API请求异常: {request.method} {request.url} - {str(e)}",
                 source="api",
                 metadata={
                     "request_id": request_id,
-                    "method": method,
-                    "path": path,
+                    "method": request.method,
+                    "path": str(request.url),
                     "duration_ms": duration,
-                    "exception": str(e),
-                    "request_body": request_body,
-                },
+                    "exception": str(e)
+                }
             )
             # 重新抛出异常，让异常处理器处理
             raise

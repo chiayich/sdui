@@ -4,6 +4,7 @@ import App from './App.vue'
 import router from './router'
 import './assets/main.css'
 import logger from './lib/logger'
+import { SDForm, SDTable, SDButton, SDDialog } from './components/sdui'
 
 // 配置日志服务
 logger.setAppName('sdui-frontend')
@@ -23,6 +24,12 @@ router.beforeEach((to, from) => {
 })
 
 const app = createApp(App)
+
+// 注册SDUI组件
+app.component('SDForm', SDForm)
+app.component('SDTable', SDTable)
+app.component('SDButton', SDButton)
+app.component('SDDialog', SDDialog)
 
 app.use(createPinia())
 app.use(router)

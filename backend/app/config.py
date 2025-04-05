@@ -7,8 +7,8 @@ class Settings(BaseSettings):
     DB_HOST: str = os.getenv("DB_HOST", "localhost")
     DB_PORT: int = int(os.getenv("DB_PORT", "5432"))
     DB_NAME: str = os.getenv("DB_NAME", "sdui")
-    DB_USER: str = os.getenv("DB_USER", "huajin")
-    DB_PASSWORD: str = os.getenv("DB_PASSWORD", "")
+    DB_USER: str = os.getenv("DB_USER", "postgres")
+    DB_PASSWORD: str = os.getenv("DB_PASSWORD", "postgres")
     DB_SCHEMA: str = os.getenv("DB_SCHEMA", "sdui_schema")
     
     # Redis设置
@@ -53,6 +53,7 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = True
+        extra = "allow"  # 允许额外的输入
 
 # 创建设置实例
 settings = Settings() 
