@@ -15,7 +15,7 @@ export default defineConfig({
     },
   },
   server: {
-    host: "0.0.0.0",
+    host: "localhost",
     port: frontendPort,
     strictPort: true,
     watch: {
@@ -23,9 +23,11 @@ export default defineConfig({
     },
     cors: true,
     hmr: {
-      host: "0.0.0.0",
+      host: "localhost",
       port: frontendPort,
+      protocol: "ws",
       clientPort: frontendPort,
+      timeout: 30000,
     },
     proxy: {
       "/api": {

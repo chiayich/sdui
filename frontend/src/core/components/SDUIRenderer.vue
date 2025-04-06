@@ -23,25 +23,16 @@
         <div v-if="config.layout?.sider" class="admin-sider" :style="{ width: `${config.layout.sider.width}px` }">
           <div class="sider-menu">
             <template v-for="item in config.layout.sider.menu" :key="item.key">
-              <div 
-                class="menu-item" 
+              <div class="menu-item"
                 :class="{ 'active': item.active || isActiveParent(item), 'has-children': item.children }"
-                @click="handleMenuClick(item)"
-                :data-title="item.title"
-              >
+                @click="handleMenuClick(item)" :data-title="item.title">
                 <i v-if="item.icon" :class="item.icon"></i>
                 <span>{{ item.title }}</span>
                 <span v-if="item.children" class="menu-arrow" :class="{ 'expanded': item.expanded }">▶</span>
               </div>
               <div v-if="item.children && (item.expanded || isActiveParent(item))" class="sub-menu">
-                <div 
-                  v-for="child in item.children" 
-                  :key="child.key" 
-                  class="menu-item"
-                  :class="{ 'active': child.active }"
-                  @click.stop="handleMenuClick(child)"
-                  :data-title="child.title"
-                >
+                <div v-for="child in item.children" :key="child.key" class="menu-item"
+                  :class="{ 'active': child.active }" @click.stop="handleMenuClick(child)" :data-title="child.title">
                   <span>{{ child.title }}</span>
                 </div>
               </div>
@@ -52,11 +43,8 @@
         <!-- 主内容区 -->
         <div class="admin-content">
           <template v-for="component in config.components" :key="component.id">
-            <component
-              :is="resolveComponent(component.type)"
-              v-bind="resolveProps(component)"
-              v-on="resolveEvents(component)"
-            />
+            <component :is="resolveComponent(component.type)" v-bind="resolveProps(component)"
+              v-on="resolveEvents(component)" />
           </template>
         </div>
       </div>
@@ -73,11 +61,8 @@
       <!-- 主内容区 -->
       <div class="page-content">
         <template v-for="component in config.components" :key="component.id">
-          <component
-            :is="resolveComponent(component.type)"
-            v-bind="resolveProps(component)"
-            v-on="resolveEvents(component)"
-          />
+          <AsyncComponent :component-type="resolveComponent(component.type)" :component-data="component"
+            @state-change="(key, value) => emit('state-change', key, value)" />
         </template>
       </div>
     </template>
@@ -85,7 +70,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, computed, watch, onMounted, h, defineComponent } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { PageConfig, MenuItem } from '@/core/types/page';
 import SDFilterBar from '@/core/components/SDFilterBar.vue';
@@ -99,7 +84,7 @@ import SDDatePicker from '@/core/components/form/SDDatePicker.vue';
 import SDRow from '@/core/components/SDRow.vue';
 import SDTags from '@/core/components/SDTags.vue';
 import SDBarChart from '@/core/components/SDBarChart.vue';
-import { mockStores, mockRecentOrders } from '@/services/mock/data';
+import { sduiService } from '@/api/sdui';
 
 // 组件映射表
 const componentMap = {
@@ -148,7 +133,7 @@ const initState = () => {
       brand: ''
     };
   }
-  
+
   // 初始化其他状态
   Object.entries(props.config.state || {}).forEach(([key, config]) => {
     if (!(key in pageState.value)) {
@@ -177,26 +162,24 @@ const resolveComponent = (type: string) => {
 };
 
 // 获取数据源
-const getDataSource = (source: string): any[] => {
+const getDataSource = async (source: string): Promise<any[]> => {
   // 如果缓存中有数据，直接返回
   if (dataSourceCache.value[source]) {
     return dataSourceCache.value[source];
   }
 
-  // 这里使用模拟数据，实际项目中应该调用API
-  let data: any[] = [];
-  switch (source) {
-    case 'storeList':
-      data = mockStores;
-      break;
-    case 'recentOrders':
-      data = mockRecentOrders;
-      break;
-  }
+  // 从后端API获取数据
+  try {
+    const response = await sduiService.getConfig(`data/${source}`);
+    const data = response.content || [];
 
-  // 缓存数据
-  dataSourceCache.value[source] = data;
-  return data;
+    // 缓存数据
+    dataSourceCache.value[source] = data;
+    return data;
+  } catch (error) {
+    console.error(`Error fetching data source ${source}:`, error);
+    return [];
+  }
 };
 
 // 刷新数据源
@@ -208,14 +191,19 @@ const refreshDataSource = (source: string) => {
 };
 
 // 解析绑定值
-const resolveBinding = (binding: any) => {
+const resolveBinding = async (binding: any) => {
   if (!binding) return null;
-  
+
   switch (binding.type) {
     case 'state':
       return pageState.value[binding.source];
     case 'dataSource':
-      return getDataSource(binding.source);
+      try {
+        return await getDataSource(binding.source);
+      } catch (error) {
+        console.error(`Error resolving binding for ${binding.source}:`, error);
+        return [];
+      }
     case 'compute':
       // 这里可以添加计算属性的支持
       return null;
@@ -225,23 +213,23 @@ const resolveBinding = (binding: any) => {
 };
 
 // 解析组件属性
-const resolveProps = (component: any) => {
+const resolveProps = async (component: any) => {
   const props = { ...component.props };
-  
+
   // 处理数据绑定
   if (component.bindings) {
-    Object.entries(component.bindings).forEach(([key, binding]) => {
-      props[key] = resolveBinding(binding);
-    });
+    for (const [key, binding] of Object.entries(component.bindings)) {
+      props[key] = await resolveBinding(binding);
+    }
   }
-  
+
   return props;
 };
 
 // 解析组件事件
 const resolveEvents = (component: any) => {
   const events: Record<string, Function> = {};
-  
+
   if (component.events) {
     Object.entries(component.events).forEach(([event, handlers]) => {
       events[event] = (...args: any[]) => {
@@ -264,7 +252,7 @@ const resolveEvents = (component: any) => {
       }
     });
   }
-  
+
   return events;
 };
 
@@ -306,13 +294,13 @@ const handleMenuClick = (item: MenuItem) => {
     item.expanded = !item.expanded;
     return;
   }
-  
+
   // 更新当前活动菜单项
   const updateActiveStatus = (menuList: MenuItem[]) => {
     menuList.forEach(menuItem => {
       // 重置所有菜单项的active状态
       menuItem.active = menuItem.key === item.key;
-      
+
       // 处理子菜单
       if (menuItem.children) {
         const hasActiveChild = updateActiveStatus(menuItem.children);
@@ -322,21 +310,21 @@ const handleMenuClick = (item: MenuItem) => {
         }
       }
     });
-    
+
     // 返回当前菜单列表中是否有活动项
     return menuList.some(menuItem => menuItem.active);
   };
-  
+
   // 更新菜单状态
   if (props.config.layout?.sider?.menu) {
     updateActiveStatus([...props.config.layout.sider.menu]);
   }
-  
+
   // 触发页面状态更新
   if (pageState.value.currentMenu !== item.key) {
     pageState.value.currentMenu = item.key;
     emit('state-change', 'currentMenu', item.key);
-    
+
     // 使用vue-router进行导航
     switch (item.key) {
       case 'instruction':
@@ -362,7 +350,7 @@ const handleMenuClick = (item: MenuItem) => {
 onMounted(() => {
   // 获取当前路由路径
   const currentPath = route.path;
-  
+
   // 根据路径找到对应的菜单键
   let menuKey = '';
   if (currentPath.includes('/flow/instruction')) {
@@ -376,7 +364,7 @@ onMounted(() => {
   } else if (currentPath.includes('/flow/overview')) {
     menuKey = 'overview';
   }
-  
+
   // 如果找到了菜单键，就更新菜单激活状态
   if (menuKey && props.config.layout?.sider?.menu) {
     const updateMenuActive = (menuList: MenuItem[]) => {
@@ -386,15 +374,15 @@ onMounted(() => {
         } else {
           menuItem.active = false;
         }
-        
+
         if (menuItem.children) {
           updateMenuActive(menuItem.children);
         }
       });
     };
-    
+
     updateMenuActive([...props.config.layout.sider.menu]);
-    
+
     // 更新当前菜单状态
     if (pageState.value.currentMenu !== menuKey) {
       pageState.value.currentMenu = menuKey;
@@ -404,6 +392,55 @@ onMounted(() => {
 
 // 初始化
 initState();
+
+// 创建异步组件包装器
+const AsyncComponent = defineComponent({
+  props: {
+    componentType: {
+      type: [String, Object],
+      required: true
+    },
+    componentData: {
+      type: Object,
+      required: true
+    }
+  },
+  emits: ['state-change'],
+  data() {
+    return {
+      resolvedProps: {},
+      loading: true,
+      error: null as Error | null
+    };
+  },
+  async created() {
+    try {
+      this.loading = true;
+      this.resolvedProps = await resolveProps(this.componentData);
+      this.loading = false;
+    } catch (err: any) {
+      this.error = err instanceof Error ? err : new Error(String(err));
+      this.loading = false;
+      console.error('Error resolving props:', err);
+    }
+  },
+  render() {
+    if (this.loading) {
+      return h('div', { class: 'loading-component' }, '加载中...');
+    }
+
+    if (this.error) {
+      return h('div', { class: 'error-component' }, `加载出错: ${this.error.message}`);
+    }
+
+    const events = resolveEvents(this.componentData);
+
+    return h(this.componentType, {
+      ...this.resolvedProps,
+      ...events
+    });
+  }
+});
 </script>
 
 <style scoped>
@@ -614,4 +651,4 @@ initState();
 .menu-arrow.expanded {
   transform: rotate(90deg);
 }
-</style> 
+</style>

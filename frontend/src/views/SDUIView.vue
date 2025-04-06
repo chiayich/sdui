@@ -1,133 +1,73 @@
 <template>
   <div class="sdui-view">
-    <div v-if="uiStore.isLoading" class="loading">
-      <p>加载UI配置中...</p>
-    </div>
-    
-    <div v-else-if="uiStore.errorMessage" class="error">
-      <h2>加载UI出错</h2>
-      <p>{{ uiStore.errorMessage }}</p>
-      <button @click="handleRetry">重试</button>
-    </div>
-    
-    <div v-else-if="uiConfig" class="renderer-container">
-      <div class="screen-header">
-        <h1>{{ uiConfig.screen?.title || 'SDUI 屏幕' }}</h1>
-      </div>
-      
-      <div class="debug-info" v-if="showDebug">
-        <p><strong>屏幕ID:</strong> {{ screenId }}</p>
-        <p><strong>配置版本:</strong> {{ uiConfig.version || '未指定' }}</p>
-        <button @click="toggleDebug">{{ showDebug ? '隐藏' : '显示' }}JSON</button>
-        <pre v-if="showJson">{{ JSON.stringify(uiConfig, null, 2) }}</pre>
-      </div>
-      
-      <!-- 使用SDUI渲染器组件 -->
-      <SDUIRenderer :config="uiConfig" />
-    </div>
-    
-    <div v-else class="error">
-      <p>没有可用的UI配置。</p>
-    </div>
+    <SDUIRenderer :schema="actualSchema" @loaded="handleLoaded" @error="handleError" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue';
-import { useRoute } from 'vue-router';
-import { useUIStore } from '../stores/uiStore';
-import SDUIRenderer from '../components/SDUIRenderer.vue';
+import { ref, computed, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import SDUIRenderer from '@/components/sdui/SDUIRenderer.vue';
 
 const route = useRoute();
-const uiStore = useUIStore();
+const router = useRouter();
 
-// 获取当前路由中的屏幕ID
-const screenId = computed(() => route.params.screenId as string);
+// 组件属性
+const props = defineProps({
+  schema: {
+    type: String,
+    default: ''
+  }
+});
 
-// 获取当前UI配置
-const uiConfig = computed(() => uiStore.currentScreen);
+// 错误状态
+const error = ref(null);
 
-// 调试状态
-const showDebug = ref(false);
-const showJson = ref(false);
+// 最终的API路径
+const actualSchema = computed(() => {
+  if (props.schema) {
+    return props.schema;
+  }
 
-// 切换调试信息显示
-const toggleDebug = () => {
-  showJson.value = !showJson.value;
-};
+  // 从路由参数中获取screenId
+  if (route.params.screenId) {
+    // 返回完整的API路径
+    return `/api/v1/sdui/${route.params.screenId}`;
+  }
 
-// 加载屏幕配置
-const loadScreen = async (forceRefresh = false) => {
-  try {
-    console.log(`SDUIView - 开始加载屏幕 ${screenId.value}`);
-    await uiStore.loadScreen(screenId.value, forceRefresh);
-    console.log(`SDUIView - 屏幕加载完成:`, uiStore.currentScreen);
-  } catch (error) {
-    console.error('SDUIView - 加载屏幕失败:', error);
+  return '';
+});
+
+// 用于存储额外的配置数据
+const configData = ref(null);
+
+// 挂载时检查路由参数
+onMounted(() => {
+  // 如果没有指定schema且没有screenId参数，跳转到首页
+  if (actualSchema.value === '') {
+    router.push({ name: 'home' });
+  }
+});
+
+// 处理配置加载成功
+const handleLoaded = (config: any) => {
+  configData.value = config;
+  // 设置文档标题
+  if (config && config.title) {
+    document.title = config.title;
   }
 };
 
-// 重试按钮处理函数
-const handleRetry = () => {
-  loadScreen(true);
+// 处理加载错误
+const handleError = (err: any) => {
+  error.value = err;
+  console.error('Failed to load SDUI config:', err);
 };
-
-// 监听路由变化，加载新屏幕
-watch(screenId, () => {
-  loadScreen();
-});
-
-// 组件挂载时加载屏幕
-onMounted(() => {
-  loadScreen();
-});
 </script>
 
 <style scoped>
 .sdui-view {
-  padding: 1rem;
-  max-width: 1200px;
-  margin: 0 auto;
+  width: 100%;
+  min-height: calc(100vh - 64px);
 }
-
-.loading, .error {
-  text-align: center;
-  padding: 2rem;
-}
-
-.error {
-  color: #d32f2f;
-}
-
-.screen-header {
-  margin-bottom: 1rem;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 0.5rem;
-}
-
-.debug-info {
-  margin: 1rem 0;
-  padding: 1rem;
-  background-color: #f9f9f9;
-  border-radius: 4px;
-  border: 1px solid #eee;
-}
-
-.debug-info button {
-  margin: 0.5rem 0;
-  padding: 0.25rem 0.5rem;
-}
-
-.debug-info pre {
-  margin: 0.5rem 0 0;
-  padding: 1rem;
-  background-color: #f5f5f5;
-  border-radius: 4px;
-  overflow: auto;
-  text-align: left;
-}
-
-.renderer-container {
-  margin-top: 1rem;
-}
-</style> 
+</style>

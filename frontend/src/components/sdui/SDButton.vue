@@ -1,71 +1,127 @@
 <template>
-  <button 
-    :id="id" 
-    class="sdui-button" 
-    :style="styleObj"
-    @click="handleClick"
-  >
-    {{ label }}
+  <button :id="id" :class="['sd-button', `sd-button--${buttonType}`, className]" :style="finalStyle"
+    @click="handleClick">
+    {{ buttonText }}
+    <slot></slot>
   </button>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { UIStyle, UIProperties, UIEvents, ComponentActionEvent } from '../../types/sdui';
 
-// 定义组件属性
-const props = defineProps<{
-  id: string;
-  style?: UIStyle;
-  properties?: UIProperties;
-  events?: UIEvents;
-}>();
-
-// 定义事件
-const emit = defineEmits<{
-  (e: 'action', action: ComponentActionEvent): void;
-}>();
-
-// 计算按钮文本
-const label = computed(() => {
-  if (props.properties && 'label' in props.properties) {
-    return props.properties.label;
+const props = defineProps({
+  id: {
+    type: String,
+    default: ''
+  },
+  text: {
+    type: String,
+    default: ''
+  },
+  type: {
+    type: String,
+    default: 'default' // default, primary, success, warning, danger
+  },
+  className: {
+    type: String,
+    default: ''
+  },
+  style: {
+    type: Object,
+    default: () => ({})
+  },
+  visible: {
+    type: Boolean,
+    default: true
+  },
+  properties: {
+    type: Object,
+    default: () => ({})
+  },
+  events: {
+    type: Object,
+    default: () => ({})
   }
-  return 'Button';
 });
 
-// 将style对象转换为CSS对象
-const styleObj = computed(() => props.style || {});
+const emit = defineEmits(['action', 'click']);
+
+// 计算按钮文本
+const buttonText = computed(() => {
+  // 兼容多种属性名: text, label
+  return props.properties?.text || props.properties?.label || props.text || '';
+});
+
+// 计算按钮类型
+const buttonType = computed(() => {
+  return props.properties?.type || props.type || 'default';
+});
+
+// 计算最终样式
+const finalStyle = computed(() => {
+  const baseStyle = { ...(props.style || {}) };
+
+  if (!props.visible) {
+    baseStyle.display = 'none';
+  }
+
+  return baseStyle;
+});
 
 // 处理点击事件
-const handleClick = () => {
-  // 如果定义了点击事件，则触发
-  if (props.events && props.events.click) {
-    const actionData = {
-      componentId: props.id,
-      ...props.events.click
-    };
-    emit('action', actionData);
+const handleClick = (event: MouseEvent) => {
+  // 发出基本点击事件
+  emit('click', event);
+
+  // 如果有定义事件处理器，根据配置发出action
+  if (props.events?.click) {
+    emit('action', props.events.click);
+  } else if (props.properties?.action) {
+    emit('action', props.properties.action);
   }
 };
 </script>
 
 <style scoped>
-.sdui-button {
-  padding: 8px 16px;
+.sd-button {
+  padding: 10px 20px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
-  background-color: #1890ff;
+  transition: all 0.3s;
+}
+
+.sd-button--default {
+  background-color: #f5f5f5;
+  color: #333;
+}
+
+.sd-button--primary {
+  background-color: #409eff;
   color: white;
 }
 
-.sdui-button:hover {
-  opacity: 0.9;
+.sd-button--success {
+  background-color: #67c23a;
+  color: white;
 }
 
-.sdui-button:active {
-  opacity: 0.7;
+.sd-button--warning {
+  background-color: #e6a23c;
+  color: white;
 }
-</style> 
+
+.sd-button--danger {
+  background-color: #f56c6c;
+  color: white;
+}
+
+.sd-button:hover {
+  opacity: 0.8;
+}
+
+.sd-button:active {
+  transform: scale(0.98);
+}
+</style>

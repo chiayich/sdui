@@ -1,34 +1,77 @@
 <template>
-  <div :id="id" class="sdui-text" :style="styleObj">
-    {{ content }}
-  </div>
+  <component :is="tagName" :id="id" :class="className" :style="finalStyle">
+    {{ displayContent }}
+    <slot></slot>
+  </component>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { UIStyle, UIProperties } from '../../types/sdui';
 
-// 定义组件属性
-const props = defineProps<{
-  id: string;
-  style?: UIStyle;
-  properties?: UIProperties;
-}>();
-
-// 计算文本内容
-const content = computed(() => {
-  if (props.properties && 'content' in props.properties) {
-    return props.properties.content;
+const props = defineProps({
+  id: {
+    type: String,
+    default: ''
+  },
+  content: {
+    type: String,
+    default: ''
+  },
+  level: {
+    type: [String, Number],
+    default: ''
+  },
+  className: {
+    type: String,
+    default: ''
+  },
+  style: {
+    type: Object,
+    default: () => ({})
+  },
+  visible: {
+    type: Boolean,
+    default: true
+  },
+  properties: {
+    type: Object,
+    default: () => ({})
   }
-  return '';
 });
 
-// 将style对象转换为CSS对象
-const styleObj = computed(() => props.style || {});
+const displayContent = computed(() => {
+  return props.properties?.content || props.content || '';
+});
+
+const tagName = computed(() => {
+  const level = props.properties?.level || props.level;
+
+  if (level && /^[1-6]$/.test(String(level))) {
+    return `h${level}`;
+  }
+
+  return 'p';
+});
+
+const finalStyle = computed(() => {
+  const baseStyle = { ...(props.style || {}) };
+
+  if (!props.visible) {
+    baseStyle.display = 'none';
+  }
+
+  return baseStyle;
+});
 </script>
 
 <style scoped>
-.sdui-text {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
   margin: 0;
 }
-</style> 
+</style>

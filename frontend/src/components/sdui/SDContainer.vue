@@ -1,60 +1,71 @@
 <template>
-  <div :id="id" class="sdui-container" :style="styleObj">
-    <component
-      v-for="child in children"
-      :key="child.id"
-      :is="getComponentType(child.type)"
-      v-bind="mapProps(child)"
-      @action="handleAction"
-    />
+  <div :id="id" :class="['sd-container', className]" :style="finalStyle">
+    <slot></slot>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import componentMap from './index';
-import { UIComponent, UIStyle, ComponentActionEvent } from '../../types/sdui';
 
-// 定义组件属性
-const props = defineProps<{
-  id: string;
-  style?: UIStyle;
-  children?: UIComponent[];
-}>();
+interface SDUIChild {
+  id?: string;
+  component: string | object;
+  props: Record<string, any>;
+}
 
-// 定义事件
-const emit = defineEmits<{
-  (e: 'action', action: ComponentActionEvent): void;
-}>();
+const props = defineProps({
+  id: {
+    type: String,
+    default: ''
+  },
+  className: {
+    type: String,
+    default: ''
+  },
+  style: {
+    type: Object,
+    default: () => ({})
+  },
+  children: {
+    type: Array as () => SDUIChild[],
+    default: () => []
+  },
+  content: {
+    type: Array as () => SDUIChild[],
+    default: () => []
+  },
+  visible: {
+    type: Boolean,
+    default: true
+  },
+  properties: {
+    type: Object,
+    default: () => ({})
+  }
+});
 
-// 将style对象转换为CSS对象
-const styleObj = computed(() => props.style || {});
+const finalStyle = computed(() => {
+  const baseStyle = { ...(props.style || {}) };
 
-// 获取组件类型
-const getComponentType = (type: string) => {
-  return componentMap[type] || 'div';
-};
+  if (props.properties && props.properties.style) {
+    Object.assign(baseStyle, props.properties.style);
+  }
 
-// 映射组件属性
-const mapProps = (component: UIComponent) => {
-  return {
-    id: component.id,
-    style: component.style || {},
-    properties: component.properties || {},
-    events: component.events || {},
-    children: component.children || [],
-  };
-};
+  if (!props.visible) {
+    baseStyle.display = 'none';
+  }
 
-// 处理子组件触发的事件
-const handleAction = (action: ComponentActionEvent) => {
-  emit('action', action);
-};
+  return baseStyle;
+});
+
+defineEmits(['action']);
 </script>
 
 <style scoped>
-.sdui-container {
+.sd-container {
   display: flex;
   flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
 }
-</style> 
+</style>
