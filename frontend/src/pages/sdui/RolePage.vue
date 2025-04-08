@@ -1,6 +1,6 @@
 <template>
   <div class="role-page">
-    <SDUIRenderer :schema="'/api/v1/sdui/system.role'" />
+    <SDUIRenderer :schema="'/api/sdui/system.role'" />
   </div>
 </template>
 

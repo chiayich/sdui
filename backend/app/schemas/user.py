@@ -1,4 +1,6 @@
-from typing import Optional, List
+import uuid
+from typing import List, Optional
+
 from pydantic import BaseModel, EmailStr
 
 
@@ -8,7 +10,7 @@ class UserBase(BaseModel):
     email: EmailStr
     is_active: Optional[bool] = True
     is_superuser: Optional[bool] = False
-    organization_id: Optional[int] = None
+    organization_id: Optional[uuid.UUID] = None
 
 
 # 用于创建用户，不包含ID和角色
@@ -23,24 +25,24 @@ class UserUpdate(BaseModel):
     password: Optional[str] = None
     is_active: Optional[bool] = None
     is_superuser: Optional[bool] = None
-    organization_id: Optional[int] = None
+    organization_id: Optional[uuid.UUID] = None
 
 
 # 数据库模型对应的完整用户信息
 class UserInDB(UserBase):
-    id: int
+    id: uuid.UUID
     hashed_password: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 # API响应中的用户信息（不包含密码）
 class User(UserBase):
-    id: int
-    
+    id: uuid.UUID
+
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 # 用户登录请求
@@ -57,4 +59,4 @@ class Token(BaseModel):
 
 # 令牌数据
 class TokenPayload(BaseModel):
-    sub: Optional[str] = None 
+    sub: Optional[str] = None

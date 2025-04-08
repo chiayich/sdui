@@ -75,24 +75,30 @@ watch(() => props.component, (newComp) => {
     console.log('组件更新:', newComp);
 }, { deep: true });
 
-// 获取组件子元素（优先处理content字段，因为这是首页配置的方式）
+// 获取组件子元素
 const componentChildren = computed(() => {
-    // 处理content对象而非数组的情况（如用户管理页面的表格）
-    if (props.component.content && typeof props.component.content === 'object' && !Array.isArray(props.component.content)) {
-        console.log(`组件${props.component.type}使用content作为单个子组件对象`);
-        return [props.component.content];
-    }
-
-    // 首先检查content字段
-    if (Array.isArray(props.component.content) && props.component.content.length > 0) {
-        console.log(`组件${props.component.type}使用content作为子组件，包含${props.component.content.length}个子元素`);
-        return props.component.content;
-    }
-
-    // 其次检查children字段
+    // 统一使用 children 字段
     if (Array.isArray(props.component.children) && props.component.children.length > 0) {
-        console.log(`组件${props.component.type}使用children作为子组件，包含${props.component.children.length}个子元素`);
+        console.log(`组件${props.component.type}包含${props.component.children.length}个子元素`);
         return props.component.children;
+    }
+
+    // 向后兼容：如果发现使用了其他字段，输出警告
+    if (props.component.content) {
+        console.warn(`组件${props.component.type}使用了已废弃的 content 字段，请使用 children 字段`);
+        if (typeof props.component.content === 'object' && !Array.isArray(props.component.content)) {
+            return [props.component.content];
+        }
+        if (Array.isArray(props.component.content)) {
+            return props.component.content;
+        }
+    }
+
+    if (props.component.components) {
+        console.warn(`组件${props.component.type}使用了已废弃的 components 字段，请使用 children 字段`);
+        if (Array.isArray(props.component.components)) {
+            return props.component.components;
+        }
     }
 
     console.log(`组件${props.component.type}没有子组件`);

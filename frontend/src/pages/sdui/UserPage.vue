@@ -1,6 +1,6 @@
 <template>
     <div class="user-page">
-        <SDUIRenderer :schema="'/api/v1/sdui/system.user'" />
+        <SDUIRenderer :schema="'/api/sdui/system.user'" />
     </div>
 </template>
 

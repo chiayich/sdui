@@ -106,7 +106,7 @@ const router = createRouter({
             name: 'Instruction',
             component: SDUIView,
             props: {
-                schema: '/api/v1/sdui/instruction'
+                schema: '/api/sdui/instruction'
             },
             meta: {
                 requiresAuth: true
@@ -117,7 +117,7 @@ const router = createRouter({
             name: 'Simulation',
             component: SDUIView,
             props: {
-                schema: '/api/v1/sdui/simulation'
+                schema: '/api/sdui/simulation'
             },
             meta: {
                 requiresAuth: true

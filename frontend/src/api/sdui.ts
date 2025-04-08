@@ -19,7 +19,7 @@ export const sduiService = {
      * @param configCode - 配置代码
      */
     getConfig: async (configCode: string): Promise<SDUIConfig> => {
-        const response = await axios.get(`/api/v1/sdui/${configCode}`);
+        const response = await axios.get(`/api/sdui/${configCode}`);
         return response.data;
     },
 
@@ -28,7 +28,7 @@ export const sduiService = {
      * @param configCode - 配置代码
      */
     getPublicConfig: async (configCode: string): Promise<SDUIConfig> => {
-        const response = await axios.get(`/api/v1/sdui/public/${configCode}`);
+        const response = await axios.get(`/api/sdui/public/${configCode}`);
         return response.data;
     }
 };

@@ -44,7 +44,7 @@ export const authService = {
         params.append('username', payload.username);
         params.append('password', payload.password);
 
-        const response = await authApi.post('/api/v1/login/access-token', params, {
+        const response = await authApi.post('/api/auth/token', params, {
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
@@ -59,7 +59,7 @@ export const authService = {
      * @param token - 认证令牌
      */
     getUserInfo: async (token: string): Promise<UserInfoResponse> => {
-        const response = await authApi.get('/api/v1/users/me', {
+        const response = await authApi.get('/api/auth/me', {
             headers: {
                 Authorization: `Bearer ${token}`
             }

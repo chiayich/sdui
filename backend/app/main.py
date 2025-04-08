@@ -1,13 +1,12 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 import logging
 from contextlib import asynccontextmanager
 
-from app.core.config import settings
-from app.db.init_db import init_db
-from app.db.session import SessionLocal
-from app.api.api import api_router
-from app.routers.sdui import router as sdui_router
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from .api.api import api_router
+from .config import settings
+from .routers import auth, components, logs, sdui, ui, ui_templates
 
 # 配置日志
 logging.basicConfig(
@@ -20,54 +19,48 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # 在应用启动时执行
-    logger.info("应用启动中... 初始化数据库")
-
-    # 初始化数据库
-    db = SessionLocal()
-    try:
-        init_db(db)
-        logger.info("数据库初始化完成")
-    except Exception as e:
-        logger.error(f"数据库初始化失败: {e}")
-    finally:
-        db.close()
-
+    logger.info("应用启动中...")
     yield
-
     # 在应用关闭时执行
     logger.info("应用关闭中...")
 
 
 # 创建FastAPI应用
 app = FastAPI(
-    title="SDUI Backend API",
-    description="Server-Driven UI Backend API",
-    version="0.1.0",
-    openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    title=settings.PROJECT_NAME,
+    version=settings.VERSION,
+    openapi_url="/api/openapi.json",
     docs_url="/docs",
     redoc_url="/redoc",
     lifespan=lifespan,
 )
 
-# 添加CORS中间件
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[str(origin) for origin in settings.CORS_ORIGINS],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# 设置CORS
+if settings.CORS_ORIGINS:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.CORS_ORIGINS,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
-# 注册路由
-app.include_router(api_router, prefix=settings.API_V1_STR)
-app.include_router(sdui_router)
+# 添加路由
+app.include_router(api_router)  # 添加API路由
+app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
+# app.include_router(sdui.router, prefix="/api/sdui", tags=["sdui"])  # 注释掉重复的路由
+app.include_router(ui.router, prefix="/api/ui", tags=["ui"])
+app.include_router(components.router, prefix="/api/components", tags=["components"])
+app.include_router(logs.router, prefix="/api/logs", tags=["logs"])
+app.include_router(ui_templates.router, prefix="/api/templates", tags=["templates"])
 
 
 @app.get("/")
 def root():
-    return {"message": "Welcome to SDUI Backend API", "version": "0.1.0"}
+    return {"message": "Welcome to SDUI Backend API", "version": settings.VERSION}
 
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)

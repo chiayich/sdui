@@ -32,7 +32,7 @@ const actualSchema = computed(() => {
   // 从路由参数中获取screenId
   if (route.params.screenId) {
     // 返回完整的API路径
-    return `/api/v1/sdui/${route.params.screenId}`;
+    return `/api/sdui/${route.params.screenId}`;
   }
 
   return '';

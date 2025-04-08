@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.orm import Session
 from typing import Dict, Any, Optional, List
 from pydantic import BaseModel
 import logging
 
-# 导入服务和模型
-from app.config import settings
+from ..config import settings
+from ..db.session import get_db
+from ..services.ui_service import UIService
 
 # 配置日志
 logger = logging.getLogger(__name__)

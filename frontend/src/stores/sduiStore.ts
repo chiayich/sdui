@@ -75,7 +75,7 @@ export const useSduiStore = defineStore('sdui', () => {
             return null;
         }
 
-        const apiUrl = '/api/v1/sdui/structure';
+        const apiUrl = '/api/sdui/structure';
         console.log('[SDUI] 开始加载应用结构...');
 
         // 防止重复请求机制
@@ -122,31 +122,13 @@ export const useSduiStore = defineStore('sdui', () => {
      * @param force 是否强制重新加载
      */
     const loadHomeConfig = async (force = false) => {
-        console.log(`[SDUI] loadHomeConfig调用，force=${force}, 当前状态:`, {
-            已加载: isHomeLoaded.value,
-            正在加载: isLoading.value,
-            错误: error.value
-        });
-
-        // 如果已加载且不是强制刷新，直接返回
-        if (isHomeLoaded.value && !force) {
-            console.log('[SDUI] 首页配置已加载，直接返回缓存数据');
+        const requestKey = 'home';
+        if (!force && homeConfig.value) {
             return homeConfig.value;
         }
 
-        const apiUrl = '/api/v1/sdui/home';
-        console.log('[SDUI] 开始加载首页配置...');
-
-        // 防止重复请求机制
-        const requestKey = `GET:${apiUrl}:${force ? Date.now() : 'default'}`;
-        console.log(`[SDUI] 使用请求键: ${requestKey}`);
-
-        // 开始加载
-        isLoading.value = true;
-        error.value = null;
-
         try {
-            console.log('[SDUI] 准备发送首页配置请求');
+            const apiUrl = '/api/sdui/home_page';
             const response = await executeRequest(requestKey, () =>
                 axios.get(apiUrl, {
                     headers: {
@@ -154,34 +136,14 @@ export const useSduiStore = defineStore('sdui', () => {
                         'Pragma': 'no-cache',
                         'Expires': '0'
                     },
-                    // 添加随机参数以防止浏览器缓存
                     params: force ? { _t: Date.now() } : {}
                 })
             );
-
-            console.log('[SDUI] 首页配置请求成功，数据:', response.data);
-
-            // 保存首页配置
             homeConfig.value = response.data;
-            console.log('[SDUI] 首页配置已保存到store');
             return response.data;
-        } catch (err: any) {
-            const status = err.response?.status;
-            console.error(`[SDUI] 加载首页配置失败 [${status}]:`, err);
-
-            // 具体错误消息
-            const errMsg = err.response?.data?.detail || err.message || '未知错误';
-            error.value = `加载首页配置失败: ${errMsg}`;
-
-            // 如果是401错误，可能需要重新登录
-            if (status === 401) {
-                console.log('[SDUI] 检测到401未授权错误，可能需要重新登录');
-            }
-
-            return null;
-        } finally {
-            isLoading.value = false;
-            console.log('[SDUI] 首页配置加载流程完成，isLoading设为false');
+        } catch (error) {
+            console.error('Failed to load home config:', error);
+            throw error;
         }
     };
 
@@ -197,7 +159,7 @@ export const useSduiStore = defineStore('sdui', () => {
             return screenConfigs.value.get(screenId);
         }
 
-        const apiUrl = `/api/v1/sdui/${screenId}`;
+        const apiUrl = `/api/sdui/${screenId}`;
         console.log(`[SDUI] 开始加载屏幕配置 ${screenId}...`);
 
         // 防止重复请求机制

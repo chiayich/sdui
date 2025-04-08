@@ -1,8 +1,9 @@
+import redis
 import logging
 import redis.asyncio as redis
 from fastapi import Depends
 
-from app.config import settings
+from ..config import settings
 
 logger = logging.getLogger(__name__)
 

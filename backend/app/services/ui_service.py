@@ -1,12 +1,11 @@
+import json
 import logging
 from typing import Dict, List, Optional, Any
-import json
-
 from fastapi import Depends, HTTPException
 
-from app.config import settings
+from ..config import settings
 from app.db.database import get_db
-from app.services.redis_service import get_redis
+from .redis_service import get_redis
 
 logger = logging.getLogger(__name__)
 

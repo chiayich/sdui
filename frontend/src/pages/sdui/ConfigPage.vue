@@ -1,6 +1,6 @@
 <template>
     <div class="config-page">
-        <SDUIRenderer :schema="'/api/v1/sdui/system.config'" />
+        <SDUIRenderer :schema="'/api/sdui/system.config'" />
     </div>
 </template>
 

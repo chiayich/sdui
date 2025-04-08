@@ -17,6 +17,7 @@ import SDDivider from './SDDivider.vue';
 import SDIcon from './SDIcon.vue';
 import SDTitle from './SDTitle.vue';
 import SDFilterBar from './SDFilterBar.vue';
+import SDHeader from './SDHeader.vue';
 
 // 组件映射表类型
 type ComponentMap = {
@@ -25,6 +26,10 @@ type ComponentMap = {
 
 // 导出组件映射表
 const componentMap: ComponentMap = {
+  // 布局组件
+  Header: SDHeader,
+  header: SDHeader,
+
   // 容器组件
   Page: SDContainer,
   page: SDContainer,

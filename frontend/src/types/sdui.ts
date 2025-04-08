@@ -45,10 +45,15 @@ export interface UIScreen {
 
 // UI配置响应
 export interface UIConfig {
-  version: string;
-  screen?: UIScreen;
-  components?: UIComponent[];
+  type: "page" | "component" | "layout" | "structure";
+  id: string;
+  title?: string;
+  content?: UIComponent[];
+  layout?: Record<string, any>;
+  styles?: Record<string, any>;
   metadata?: Record<string, any>;
+  is_public?: boolean;
+  version: number;
 }
 
 // 组件动作事件
